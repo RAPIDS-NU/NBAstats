@@ -1,0 +1,14 @@
+import json, os
+import pandas as pd
+import numpy as np
+import NBAData as nba
+
+"""
+this class will be used to collect the play by play data using the NBAData api to access the data from data.nba.com.
+the data will be put into a dataframe that can be used with the dataframe of positional data. 
+TODO:
+- create constructor (params: date of the game, gameid)
+- create fields for different parts of the data
+- collect into dataframe to be used with position data. 
+"""
+class playbyplay_data(object):
