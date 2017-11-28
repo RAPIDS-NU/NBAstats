@@ -12,3 +12,12 @@ TODO:
 - collect into dataframe to be used with position data. 
 """
 class playbyplay_data(object):
+
+
+
+    '''
+    steps for cleaning data:
+    - get data into dataframe
+    - filter for 3pt shots
+    - match up on time
+    '''

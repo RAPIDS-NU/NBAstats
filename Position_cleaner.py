@@ -13,3 +13,23 @@ TODO:
 -collect into the single dataframe to be returned
 """
 class postition_data(object):
+
+
+
+    def __init__(self, path, game_id):
+        self.ID = game_id
+        '''
+        columns foe the final dataset:
+        '''
+        self.keep_col = ['GameClock', 'Quarter', 'ShotClock', 'Position',
+                         'Clock', 'BallX', 'BallY', 'BallZ', '3point', 'ShotStart', 'ShotEnd', 'Make?']
+        with open(path + self.ID) as json_data:
+            self.data = json.load(json_data)
+
+
+'''
+steps for cleaning data:
+- make a dataset for each moment (keep position data untouched)
+- create dataframe for ball movements to attach to movements
+- filter data for where ball is behind 3 point line and being shot
+'''
