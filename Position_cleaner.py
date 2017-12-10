@@ -2,6 +2,8 @@ import json, os
 import pandas as pd
 import numpy as np
 
+print('hello')
+
 """
 this class will be used to collect the position data of a SportVU Json file and the additional 3 point information 
 (is the ball being shot from the 3 point line, time of the shot, etc) 

@@ -1,16 +1,21 @@
-import json, os
 import pandas as pd
+import datetime as dt
+from math import *
 import numpy as np
-import NBAData as nba
+import requests, json, os
 
 pd.options.mode.chained_assignment = None
+
+pd.set_option('display.max_rows', 10000)
+pd.set_option('display.max_colwidth', 10000)
+pd.set_option('display.width', None)
 
 def clocktosec(clock):
     """
     Turns clock (HH:MM or MM:SS format) into time in units.
     """
-     m, s = clock.split(':')
-     return 60 * int(m) + int(s)
+    m, s = clock.split(':')
+    return 60 * int(m) + int(s)
 
 """
 this class will be used to collect the play by play data using the NBAData api to access the data from data.nba.com.
@@ -38,9 +43,10 @@ class playbyplay_data(object):
         """
         self.ID = gameID
         self.g = 1
+        self.three_pt_shots = ''
 
 
-    def get(self):
+    def getData(self):
         """
         Queries STATS server for game data.
         """
@@ -61,71 +67,86 @@ class playbyplay_data(object):
         """
 
         if self.g:
-            self.get()
+            self.getData()
             self.g = 0
 
         """
-        #1.1 Creates DataFrame.
+        Creates data frame to match Json
         """
         plays = self.data['resultSets']
         plays = plays[0]
         cols = plays['headers']
-        self.playbyplay = pd.DataFrame(plays['rowSet'], columns=cols)
+        self.playbyplay_init = pd.DataFrame(plays['rowSet'], columns=cols)
 
         """
-        #1.2 Sets columns to keep, and columns to reformat.
+        Reformats columns
         """
-        keepers = ['EVENTMSGTYPE', 'PERIOD', 'PCTIMESTRING', 'HOMEDESCRIPTION', \
+        keepers = ['EVENTMSGTYPE', 'PERIOD', 'PCTIMESTRING', 'HOMEDESCRIPTION', 'VISITORDESCRIPTION',\
                    'PLAYER1_ID', 'PLAYER1_NAME', 'PLAYER1_TEAM_ID', 'PLAYER1_TEAM_ABBREVIATION', \
                    'PLAYER2_ID', 'PLAYER2_NAME', 'PLAYER2_TEAM_ID', 'PLAYER2_TEAM_ABBREVIATION', \
                    'PLAYER3_ID', 'PLAYER3_NAME', 'PLAYER3_TEAM_ID', 'PLAYER3_TEAM_ABBREVIATION']
-        strCols = ['PCTIMESTRING', 'HOMEDESCRIPTION', 'PLAYER1_ID', 'PLAYER1_NAME', \
+        strCols = ['PCTIMESTRING', 'HOMEDESCRIPTION', 'VISITORDESCRIPTION', 'PLAYER1_ID', 'PLAYER1_NAME', \
                    'PLAYER1_TEAM_ID', 'PLAYER1_TEAM_ABBREVIATION', 'PLAYER2_ID', 'PLAYER2_NAME', \
                    'PLAYER2_TEAM_ID', 'PLAYER2_TEAM_ABBREVIATION', 'PLAYER3_ID', 'PLAYER3_NAME', \
                    'PLAYER3_TEAM_ID', 'PLAYER3_TEAM_ABBREVIATION']
         intCols = ['EVENTMSGTYPE', 'PERIOD']
 
         """
-        #1.3 Sets frame to correct columns, and converts columns to correct datatypes.
+        sets DF with desired columns, and changeds the datatypes to either string of integer
         """
-        self.playbyplay = self.playbyplay[keepers]
+
+
+        self.playbyplay = self.playbyplay_init[keepers]
+
+        for index, row in self.playbyplay.iterrows():
+            if (row['HOMEDESCRIPTION'] is None):
+                self.playbyplay.at[index,'HOMEDESCRIPTION'] = row['VISITORDESCRIPTION']
+
+
+
         for col in strCols:
             self.playbyplay[col] = self.playbyplay[col].astype(str)
         for col in intCols:
             self.playbyplay[col] = self.playbyplay[col].astype(int)
 
+        self.playbyplay = self.playbyplay.drop(['VISITORDESCRIPTION'],axis=1)
+
+        self.playbyplay.columns = ['EVENTMSGTYPE', 'PERIOD', 'PCTIMESTRING', 'DESCRIPTION',\
+                   'PLAYER1_ID', 'PLAYER1_NAME', 'PLAYER1_TEAM_ID', 'PLAYER1_TEAM_ABBREVIATION', \
+                   'PLAYER2_ID', 'PLAYER2_NAME', 'PLAYER2_TEAM_ID', 'PLAYER2_TEAM_ABBREVIATION', \
+                   'PLAYER3_ID', 'PLAYER3_NAME', 'PLAYER3_TEAM_ID', 'PLAYER3_TEAM_ABBREVIATION']
+
+
         """
-        #2.0 The Class now identifies needed plays, adds column for game clock, and
-             separates out the events that are shots and rebounds.
+        Seperates out 3 point attempts, addes clock.
         """
         """
         #2.1 Identifies rows where shots occur, and the appropriate rebound for
              each shot.
         """
-        shots = self.playbyplay.index[self.playbyplay['EVENTMSGTYPE'] == 2]
+        self.three_pt_shots = self.playbyplay.index[self.playbyplay['DESCRIPTION'].str.contains('3PT')]
 
         """
         #2.2 Adds clock column and orders.
         """
-        self.playbyplay['GameClock'] = self.playbyplay['PCTIMESTRING'].apply(clocker)
+        self.playbyplay['GameClock'] = self.playbyplay['PCTIMESTRING'].apply(clocktosec)
         self.playbyplay.sort_values(by=['PERIOD', 'GameClock'], ascending=[True, False], inplace=True)
 
         """
         #2.3 Separates the correct rows into new frames.
         """
-        self.Shots = self.playbyplay.iloc[shots, :]
-        self.Shots.reset_index(inplace=True, drop=True)
+        self.three_pt_shots = self.playbyplay.iloc[self.three_pt_shots, :]
+        self.three_pt_shots.reset_index(inplace=True, drop=True)
         return
 
     def run(self):
         self.unpack()
 
-    if __name__ == '__main__':
-        import time
-        t = time.time()
-        pbp = playbyplay('0021500293')
-        pbp.run()
-        print pbp.paired.info()
-        print 'Runtime: ' + str(time.time() - t) + ' seconds'
+if __name__ == '__main__':
+    import time
+    t = time.time()
+    pbp = playbyplay_data('0021500293')
+    pbp.run()
+    print(pbp.three_pt_shots)
+    print('Runtime: ' + str(time.time() - t) + ' seconds')
 
-playbyplay_data.run()

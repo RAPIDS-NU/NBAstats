@@ -35,6 +35,7 @@ def get_movement_data(data):
     headers = ["team_id", "player_id", "x_loc", "y_loc",
                "radius", "moment", "game_clock", "period", "shot_clock"]
     player_moments = []
+    #len(allMoments)
     #for moments in allMoments:
     moments = allMoments[1]
     for moment in moments:
