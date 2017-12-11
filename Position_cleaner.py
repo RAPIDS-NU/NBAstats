@@ -129,7 +129,6 @@ class postition_data(object):
         return self.Positions
 
 
-
     def getPlayerID(self, id):
         visitor = self.events[0]["visitor"]
         home = self.events[0]["home"]
@@ -154,5 +153,5 @@ if __name__ == '__main__':
     path = './'
     gameID = '0021500293.json'
     sport = postition_data(path, gameID)
-    print(sport.return_df())
+    print(sport.return_df().head(15))
     print('Runtime: ' + str(time.time() - t) + ' seconds')
