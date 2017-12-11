@@ -62,10 +62,6 @@ class playbyplay_data(object):
         Unpacks json data received from STATS to extract the full play by play
         and put it in a convertible format.
         """
-        """
-        #1.0 Grabs data if not acquired already.
-        """
-
         if self.g:
             self.getData()
             self.g = 0
