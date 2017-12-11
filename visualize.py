@@ -20,10 +20,7 @@ class visaulize(object):
         self.pos = postition_data(path, gameID)
         self.posDF = self.pos.return_df()
 
-
-
-
-
+    #TODO change player id to player name for easier use
     def visualize_main_player(self, eventID):
         event_df = self.df[self.df['EventID'] == eventID]
         event_df = event_df.reset_index(drop=True)
