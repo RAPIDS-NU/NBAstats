@@ -107,7 +107,7 @@ class playbyplay_data(object):
 
         self.playbyplay = self.playbyplay.drop(['VISITORDESCRIPTION'],axis=1)
 
-        self.playbyplay.columns = ['EVENTMSGTYPE', 'PERIOD', 'PCTIMESTRING', 'DESCRIPTION',\
+        self.playbyplay.columns = ['EVENTMSGTYPE', 'Quarter', 'PCTIMESTRING', 'DESCRIPTION',\
                    'PLAYER1_ID', 'PLAYER1_NAME', 'PLAYER1_TEAM_ID', 'PLAYER1_TEAM_ABBREVIATION', \
                    'PLAYER2_ID', 'PLAYER2_NAME', 'PLAYER2_TEAM_ID', 'PLAYER2_TEAM_ABBREVIATION', \
                    'PLAYER3_ID', 'PLAYER3_NAME', 'PLAYER3_TEAM_ID', 'PLAYER3_TEAM_ABBREVIATION']
@@ -125,8 +125,8 @@ class playbyplay_data(object):
         """
         #2.2 Adds clock column and orders.
         """
-        self.playbyplay['GameClock'] = self.playbyplay['PCTIMESTRING'].apply(clocktosec)
-        self.playbyplay.sort_values(by=['PERIOD', 'GameClock'], ascending=[True, False], inplace=True)
+        self.playbyplay['Clock'] = self.playbyplay['PCTIMESTRING'].apply(clocktosec)
+        self.playbyplay.sort_values(by=['Quarter', 'Clock'], ascending=[True, False], inplace=True)
 
         """
         #2.3 Separates the correct rows into new frames.
@@ -138,11 +138,14 @@ class playbyplay_data(object):
     def run(self):
         self.unpack()
 
+    def return_df(self):
+        self.run()
+        return self.three_pt_shots
+
 if __name__ == '__main__':
     import time
     t = time.time()
     pbp = playbyplay_data('0021500293')
-    pbp.run()
-    print(pbp.three_pt_shots)
+    print(pbp.return_df())
     print('Runtime: ' + str(time.time() - t) + ' seconds')
 

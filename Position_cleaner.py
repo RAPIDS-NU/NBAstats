@@ -26,7 +26,9 @@ steps for cleaning data:
 
 
 class postition_data(object):
+
     def __init__(self, path, game_id):
+
         self.playerDict = {}
         self.ID = game_id
         '''
@@ -36,6 +38,7 @@ class postition_data(object):
                           'Clock', 'BallX', 'BallY', 'BallZ', 'LowStart', 'HighStart']
         with open(path + self.ID) as json_data:
             self.data = json.load(json_data)
+        self.events = self.data['events']
 
     def unpack(self):
         """
@@ -121,6 +124,28 @@ class postition_data(object):
         self.unpack()
         self.feat_gen()
 
+    def return_df(self):
+        self.run()
+        return self.Positions
+
+
+
+    def getPlayerID(self, id):
+        visitor = self.events[0]["visitor"]
+        home = self.events[0]["home"]
+        # initialize new dictionary
+        id_dict = {}
+
+        players = home["players"]
+        players.extend(visitor["players"])
+        id_dict = {}
+        for player in players:
+            id_dict[player['playerid']] = [player["firstname"] + " " + player["lastname"],
+                                           player["jersey"]]
+        id_dict.update({-1: ['ball', np.nan]})
+
+        return id_dict[id][0]
+
 
 if __name__ == '__main__':
     import time
@@ -128,7 +153,6 @@ if __name__ == '__main__':
     t = time.time()
     path = './'
     gameID = '0021500293.json'
-    sportvu = postition_data(path, gameID)
-    sportvu.run()
-    print(sportvu.Positions)
+    sport = postition_data(path, gameID)
+    print(sport.return_df())
     print('Runtime: ' + str(time.time() - t) + ' seconds')
